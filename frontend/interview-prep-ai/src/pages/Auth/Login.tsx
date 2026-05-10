@@ -1,17 +1,51 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../../components/Inputs/input";
+import { validateEmail } from "../../utils/helper";
+import axiosInstance from "../../utils/axiosInstance";
+import { API_PATHS } from "../../utils/apiPaths";
+import { useUser } from "../../context/UserContext";
 
 const Login = ({ setCurrentPage }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
+  const { updateUser } = useUser();
   const navigate = useNavigate();
 
-  // Handle Login Form Submit
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!password) {
+      setError("Please enter the password");
+      return;
+    }
+
+    setError("");
+
+    // Login API Call
+    try {
+      const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
+        email,
+        password,
+      });
+
+      const { token, ...userData } = response.data;
+      updateUser({ ...userData, token });
+      navigate("/dashboard");
+    } catch (error) {
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    }
   };
 
   return (
@@ -39,7 +73,7 @@ const Login = ({ setCurrentPage }) => {
 
         <button
           type="submit"
-          className="mt-2 w-full rounded-lg bg-black py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-100 hover:text-black"
+          className="mt-2 w-full rounded-lg bg-black py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-100 hover:text-black"
         >
           LOGIN
         </button>
@@ -47,10 +81,8 @@ const Login = ({ setCurrentPage }) => {
         <p className="text-[13px] text-slate-800 mt-3">
           Don't have an account?{" "}
           <button
-            className="font-medium text-primary underline cursor-pointer"
-            onClick={() => {
-              setCurrentPage("signup");
-            }}
+            className="font-medium text-amber-600 underline cursor-pointer"
+            onClick={() => setCurrentPage("signup")}
           >
             SignUp
           </button>

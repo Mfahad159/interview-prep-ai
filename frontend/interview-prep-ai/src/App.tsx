@@ -6,9 +6,11 @@ import Signup from "./pages/Auth/SignUp";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Home/Dashboard";
 import InterviewPrep from "./pages/InterviewPrep/InterviewPrep";
+import { UserProvider } from "./context/UserContext";
+
 const App = () => {
   return (
-   <div>
+   <UserProvider>
      <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -26,8 +28,8 @@ const App = () => {
         fontSize:"13px",
       },
     }}/>
-   </div>
+   </UserProvider>
   )
 }
 
-export default App
+export default App
