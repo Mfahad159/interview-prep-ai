@@ -59,22 +59,9 @@ const Dashboard = () => {
   }) => {
     setCreating(true);
     try {
-      // 1. Create the session
-      const sessionRes = await axiosInstance.post(API_PATHS.SESSION.CREATE, formData);
-      const newSession = sessionRes.data;
-
-      // 2. Generate AI questions for it
-      const questionsRes = await axiosInstance.post(API_PATHS.AI.GENERATE_QUESTIONS, {
-        role: formData.role,
-        experience: formData.experience,
-        topicsToFocus: formData.topicsToFocus,
-        numberOfQuestions: 10,
-      });
-
-      // 3. Save questions to the session
-      await axiosInstance.post(API_PATHS.QUESTION.ADD(newSession._id), {
-        questions: questionsRes.data,
-      });
+      // Create session (Backend now handles AI generation automatically)
+      const res = await axiosInstance.post(API_PATHS.SESSION.CREATE, formData);
+      const newSession = res.data;
 
       toast.success("Session created with AI questions!");
       setShowCreateModal(false);

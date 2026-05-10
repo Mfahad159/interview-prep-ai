@@ -13,7 +13,6 @@ import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 import { useUser } from "../../context/UserContext";
 import QuestionCard from "../../components/Cards/QuestionCard";
-import AIResponseDrawer from "../../components/Cards/AIResponseDrawer";
 
 const PAGE_SIZE = 5;
 
@@ -44,12 +43,6 @@ const InterviewPrep = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-
-  // AI Explanation state
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
-  const [explanation, setExplanation] = useState("");
-  const [explanationLoading, setExplanationLoading] = useState(false);
 
   useEffect(() => {
     if (!user) navigate("/");
@@ -140,24 +133,6 @@ const InterviewPrep = () => {
     }
   };
 
-  // AI Concept Explanation
-  const handleExplain = async (question: Question) => {
-    setSelectedQuestion(question);
-    setExplanation("");
-    setDrawerOpen(true);
-    setExplanationLoading(true);
-    try {
-      const res = await axiosInstance.post(API_PATHS.AI.GENERATE_EXPLANATION, {
-        question: question.question,
-        currentAnswer: question.answer,
-      });
-      setExplanation(res.data.explanation);
-    } catch {
-      setExplanation("Failed to generate explanation. Please try again.");
-    } finally {
-      setExplanationLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -176,9 +151,9 @@ const InterviewPrep = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFCEF]">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-[#FFFCEF]/90 backdrop-blur border-b border-amber-100">
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-100">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => navigate("/dashboard")}
@@ -189,13 +164,13 @@ const InterviewPrep = () => {
           </button>
 
           <div className="flex items-center gap-2">
-            <LuSparkles className="text-amber-500" size={18} />
+            <LuSparkles className="text-[#0D9488]" size={18} />
             <span className="text-sm font-bold text-gray-900">Interview Prep AI</span>
           </div>
 
           <button
             onClick={handleDeleteSession}
-            className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-full"
+            className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors border border-red-100 hover:border-red-200 px-3 py-1.5 rounded-full"
           >
             <LuTrash2 size={13} />
             Delete Session
@@ -203,41 +178,40 @@ const InterviewPrep = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Session info */}
-        <div className="bg-white rounded-2xl border border-amber-100 shadow-sm p-6 mb-7">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">{session.role}</h1>
-          {session.description && (
-            <p className="text-sm text-slate-500 mb-3">{session.description}</p>
-          )}
-          <div className="flex flex-wrap gap-3 text-xs text-slate-500 mb-4">
-            <span className="flex items-center gap-1">
-              <LuClock size={12} />
-              {session.experience} yrs experience
-            </span>
-            <span className="flex items-center gap-1">
-              <LuBriefcase size={12} />
-              {questions.length} questions
-            </span>
+      <main className="container mx-auto px-4 py-12 max-w-5xl">
+        {/* Large Header Section */}
+        <div className="mb-12 relative">
+          <div className="absolute -top-10 -right-10 w-64 h-64 bg-gradient-to-br from-teal-100/40 to-indigo-100/40 rounded-full blur-3xl -z-10" />
+
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">
+            {session.role}
+          </h1>
+          <p className="text-base text-slate-600 mb-6 font-medium">
+            {session.topicsToFocus}
+          </p>
+
+          <div className="flex flex-wrap gap-2 mb-8">
+            <div className="bg-black text-white px-4 py-1.5 rounded-full text-[11px] font-bold tracking-tight">
+              Experience: {session.experience} Years
+            </div>
+            <div className="bg-black text-white px-4 py-1.5 rounded-full text-[11px] font-bold tracking-tight">
+              {questions.length} Q&A
+            </div>
+            <div className="bg-black text-white px-4 py-1.5 rounded-full text-[11px] font-bold tracking-tight">
+              Last Updated: {new Date(session.createdAt).toLocaleDateString("en-GB", {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+              })}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {session.topicsToFocus.split(",").map((t, i) => (
-              <span
-                key={i}
-                className="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-0.5 font-medium"
-              >
-                {t.trim()}
-              </span>
-            ))}
-          </div>
+
+          <h2 className="text-xl font-bold text-slate-800 mt-16 mb-6">
+            Interview Q & A
+          </h2>
         </div>
 
         {/* Questions list */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-gray-900">
-            Q&amp;A ({questions.length})
-          </h2>
-        </div>
 
         {questions.length === 0 ? (
           <div className="text-center text-slate-400 py-16 text-sm">
@@ -251,7 +225,6 @@ const InterviewPrep = () => {
                 question={q}
                 onPin={handlePin}
                 onDelete={handleDeleteQuestion}
-                onExplain={handleExplain}
               />
             ))}
           </div>
@@ -262,30 +235,20 @@ const InterviewPrep = () => {
           {hasMore && (
             <button
               onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-              className="text-sm text-amber-700 border border-amber-300 hover:bg-amber-50 px-5 py-2 rounded-full transition-colors"
+              className="text-sm text-slate-600 border border-slate-200 hover:bg-slate-50 px-5 py-2 rounded-full transition-colors"
             >
               Show More
             </button>
           )}
           <button
             onClick={handleLoadMore}
-            className="flex items-center gap-2 bg-black text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-amber-500 transition-colors"
+            className="flex items-center gap-2 bg-black text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-slate-800 transition-colors"
           >
             <LuPlus size={15} />
             Generate 5 More Questions
           </button>
         </div>
       </main>
-
-      {/* AI Explanation Drawer */}
-      {drawerOpen && selectedQuestion && (
-        <AIResponseDrawer
-          question={selectedQuestion.question}
-          explanation={explanation}
-          loading={explanationLoading}
-          onClose={() => setDrawerOpen(false)}
-        />
-      )}
     </div>
   );
 };

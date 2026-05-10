@@ -20,69 +20,84 @@ interface SessionCardProps {
 const SessionCard = ({ session, onDelete }: SessionCardProps) => {
   const navigate = useNavigate();
 
+  const getInitials = (role: string) => {
+    return role
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <div
-      className="bg-white border border-amber-100 rounded-2xl shadow-sm hover:shadow-md hover:shadow-amber-100 transition-shadow cursor-pointer p-5 flex flex-col gap-3 relative group"
+      className="bg-white border border-gray-300/40 rounded-xl p-2 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
       onClick={() => navigate(`/interview-prep/${session._id}`)}
     >
-      {/* Delete button */}
-      <button
-        type="button"
-        className="absolute top-4 right-4 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(session._id);
-        }}
+      {/* Colored Header Area */}
+      <div 
+        className="rounded-lg p-4 relative"
+        style={{ background: "#E7F7F4" }}
       >
-        <LuTrash2 size={16} />
-      </button>
-
-      {/* Role */}
-      <div className="flex items-center gap-2">
-        <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-amber-50">
-          <LuBriefcase className="text-amber-500" size={18} />
-        </div>
-        <div>
-          <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide">Role</p>
-          <h3 className="text-sm font-semibold text-gray-900 leading-tight">{session.role}</h3>
-        </div>
-      </div>
-
-      {/* Meta */}
-      <div className="flex items-center gap-4 text-xs text-slate-500">
-        <span className="flex items-center gap-1">
-          <LuClock size={12} />
-          {session.experience} yrs exp
-        </span>
-        <span className="flex items-center gap-1">
-          <LuBookOpen size={12} />
-          {session.questions?.length ?? 0} Q&amp;As
-        </span>
-      </div>
-
-      {/* Topics */}
-      <div className="flex flex-wrap gap-1.5 mt-1">
-        {session.topicsToFocus
-          .split(",")
-          .slice(0, 4)
-          .map((topic, i) => (
-            <span
-              key={i}
-              className="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-0.5 font-medium"
-            >
-              {topic.trim()}
+        <div className="flex items-start gap-4">
+          {/* Initials Box */}
+          <div className="flex-shrink-0 w-12 h-12 bg-white rounded-md flex items-center justify-center">
+            <span className="text-lg font-semibold text-black">
+              {getInitials(session.role)}
             </span>
-          ))}
+          </div>
+
+          {/* Content Container */}
+          <div className="flex-grow">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-[17px] font-medium text-black">{session.role}</h2>
+                <p className="text-xs font-medium text-gray-900">
+                  {session.topicsToFocus}
+                </p>
+              </div>
+
+              {/* Delete Button */}
+              <button
+                type="button"
+                className="bg-[#FFE6E9] text-[#FF5B6D] text-[10px] font-bold px-3 py-1 rounded-full hover:bg-[#FFD1D6] transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(session._id);
+                }}
+              >
+                delete
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Date */}
-      <p className="text-[11px] text-slate-400 mt-auto pt-2 border-t border-slate-50">
-        {new Date(session.createdAt).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })}
-      </p>
+      {/* Details Section */}
+      <div className="px-3 pb-3">
+        <div className="flex items-center gap-3 mt-4">
+          <div className="text-[10px] font-medium text-black px-3 py-1 border-[1px] border-slate-300 rounded-full">
+            Experience: {session.experience} {Number(session.experience) === 1 ? "Year" : "Years"}
+          </div>
+          <div className="text-[10px] font-medium text-black px-3 py-1 border-[1px] border-slate-300 rounded-full">
+            {session.questions?.length ?? 0} Q&A
+          </div>
+          <div className="text-[10px] font-medium text-black px-3 py-1 border-[1px] border-slate-300 rounded-full">
+            Last Updated: {new Date(session.createdAt).toLocaleDateString("en-GB", {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+            })}
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="mt-3">
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            {session.description || `Preparing for ${session.role.toLowerCase()} roles`}
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

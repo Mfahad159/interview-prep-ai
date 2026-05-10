@@ -59,13 +59,17 @@ const loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
+      console.log("Login failed: User not found ->", email);
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log("Login failed: Password mismatch for ->", email);
       return res.status(400).json({ message: "Invalid credentials" });
     }
+
+    console.log("Login successful:", email);
 
     res.json({
       _id: user._id,

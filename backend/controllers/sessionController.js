@@ -1,5 +1,6 @@
 const Session = require("../models/Session");
 const Question = require("../models/Question");
+const { generateInterviewQuestionsInternal } = require("./aiController");
 
 // @desc    Create a new session
 // @route   POST /api/sessions
@@ -8,6 +9,7 @@ const createSession = async (req, res) => {
   const { role, experience, topicsToFocus, description } = req.body;
 
   try {
+    // 1. Create the session shell
     const session = await Session.create({
       user: req.user._id,
       role,
@@ -16,9 +18,33 @@ const createSession = async (req, res) => {
       description,
     });
 
+    // 2. Automatically generate 10 questions via Gemini
+    const aiQuestions = await generateInterviewQuestionsInternal({
+      role,
+      experience,
+      topicsToFocus,
+      numberOfQuestions: 10,
+    });
+
+    // 3. Save questions to DB and link to session
+    const savedQuestions = await Promise.all(
+      aiQuestions.map((q) =>
+        Question.create({
+          session: session._id,
+          question: q.question,
+          answer: q.answer,
+        })
+      )
+    );
+
+    // 4. Update session with question references
+    session.questions = savedQuestions.map((q) => q._id);
+    await session.save();
+
     res.status(201).json(session);
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("Session Creation Error:", err);
+    res.status(500).json({ message: "Failed to create session and generate questions", error: err.message });
   }
 };
 
